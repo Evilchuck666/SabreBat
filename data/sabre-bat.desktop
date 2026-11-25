@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Sabre v2 Pro Battery
+GenericName=Mouse battery
+Comment=Show the battery level of the Corsair Sabre v2 Pro in a notification
+Exec=sabre-bat --notify
+Icon=sabrebat
+Terminal=false
+Categories=Utility;
+Keywords=battery;mouse;corsair;sabre;bateria;raton;
+StartupNotify=false

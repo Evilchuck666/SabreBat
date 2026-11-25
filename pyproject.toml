@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=77.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "SabreBat"
+version = "0.1.0"
+description = "Battery level of the Corsair Sabre v2 Pro wireless mouse on Linux: in the terminal, in a status bar or in a desktop notification"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "GPL-3.0-only"
+license-files = ["LICENSE"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+    "Environment :: Console",
+    "Topic :: System :: Hardware",
+    "Topic :: System :: Monitoring",
+]
+keywords = ["corsair", "sabre", "mouse", "battery", "hidraw", "notification", "dunst"]
+dependencies = []
+
+[project.urls]
+Homepage = "https://evilchuck666.github.io/SabreBat/"
+Source = "https://github.com/Evilchuck666/SabreBat"
+Issues = "https://github.com/Evilchuck666/SabreBat/issues"
+Releases = "https://github.com/Evilchuck666/SabreBat/releases"
+
+[project.scripts]
+sabre-bat = "sabrebat:main"
+
+[tool.setuptools]
+packages = ["sabrebat"]
+package-dir = {"" = "src"}

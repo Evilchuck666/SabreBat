@@ -1,0 +1,27 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Virtual environment and lock file of the "SabreBat: sync venv" task (uv sync)
+.venv/
+uv.lock
+
+# Build output: python -m build, make build
+build/
+dist/
+*.egg-info/
+
+# Wheels from make build
+PKGs/
+
+# Local clone of the AUR package, used by make aur
+AUR/
+
+# makepkg output when building arch/PKGBUILD in place (SabreBat/ is its git source)
+arch/src/
+arch/pkg/
+arch/SabreBat/
+arch/*.pkg.tar*
+
+# PyCharm. The VS Code setup is shared: SabreBat.code-workspace and .vscode/
+.idea/

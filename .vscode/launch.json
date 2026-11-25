@@ -1,0 +1,32 @@
+{
+  // PYTHONPATH points at src/, so these always run this checkout, never the copy installed by the AUR package.
+  // They talk to the real receiver: plug it in and wake the mouse first.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "SabreBat: print battery",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "sabrebat",
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/src"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "SabreBat: notification",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "sabrebat",
+      "args": ["--notify"],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/src"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": true
+    }
+  ]
+}

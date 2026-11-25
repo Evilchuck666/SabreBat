@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SabreBat — Know when your mouse needs a charge.</title>
+  <meta name="description" content="Battery level of the Corsair Sabre v2 Pro wireless mouse on Linux: in the terminal, in your status bar or in a desktop notification, straight from the USB receiver.">
+  <meta name="theme-color" content="#111413">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="SabreBat">
+  <meta property="og:description" content="Battery level of the Corsair Sabre v2 Pro wireless mouse on Linux: in the terminal, in your status bar or in a desktop notification, straight from the USB receiver.">
+  <meta property="og:url" content="https://evilchuck666.github.io/SabreBat/">
+  <link rel="canonical" href="https://evilchuck666.github.io/SabreBat/">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body style="--accent:#a3be8c">
+<a class="skip" href="#main">Skip to content</a>
+<div class="wrap">
+<header><a class="brand" href="https://evilchuck666.github.io/SabreBat/"><span aria-hidden="true">▮</span>SabreBat</a>
+<nav aria-label="Main navigation"><a href="#overview">Overview</a><a href="#start">Downloads</a><a href="https://github.com/Evilchuck666/SabreBat">GitHub ↗</a></nav></header>
+<main id="main">
+<section class="hero" aria-labelledby="headline"><div><p class="eyebrow">Linux desktop tools / Evilchuck666</p>
+<h1 id="headline">Know when your mouse needs a charge.</h1><p class="lead">Battery level of the Corsair Sabre v2 Pro wireless mouse on Linux: in the terminal, in your status bar or in a desktop notification, read straight from the USB receiver.</p>
+<div class="actions"><a class="button" href="#start">Download SabreBat <span aria-hidden="true">↓</span></a><a class="button secondary" href="https://github.com/Evilchuck666/SabreBat">View source</a></div></div>
+<div class="mark" aria-hidden="true"><span>SB</span></div></section>
+<p class="stack">Python · hidraw · udev · libnotify · dunst</p>
+<section class="screenshots" aria-label="Screenshots"><p class="eyebrow">In use</p><div class="capture-grid pair"><figure><img src="assets/screenshots/notification.png" width="340" height="122" style="width:auto;max-width:100%" alt="A dunst notification titled Corsair Sabre v2 Pro: a mouse icon filled in green, 95% in large green digits, the label High battery, 4.11 V and a progress bar almost full."><figcaption>The notification on a Nord-themed dunst: the icon fills up and changes colour with the level, and a progress bar shows the rest.</figcaption></figure>
+<figure><pre><code>$ sabre-bat
+Sabre v2 Pro: 95%  (4118 mV, flag=0)
+$ sabre-bat --quiet
+95
+$ sabre-bat --notify</code></pre><figcaption>The same reading in a terminal, as a bare number for status bars, or as a notification.</figcaption></figure></div></section>
+<section id="overview" class="features" aria-label="What you can do"><article><span class="feature-number">01</span><h3>One command, three outputs</h3><p>A readable line, just the percentage for scripts and bars, or a notification coloured from green to red.</p></article>
+<article><span class="feature-number">02</span><h3>No vendor software</h3><p>Talks to the receiver over hidraw with a udev rule, so it needs no daemon, no sudo and no Python packages.</p></article>
+<article><span class="feature-number">03</span><h3>From your launcher</h3><p>Ships a desktop entry, so rofi or any app menu can pop up the level, and a keyboard shortcut works too.</p></article></section>
+<section id="start" class="start" aria-labelledby="start-title"><div><p class="eyebrow">Get started</p><h2 id="start-title">Check your battery</h2><p>Install SabreBat and its udev rule, then plug the receiver back in so the rule applies. On Arch-based distributions the AUR package installs the rule, the desktop entry and the icon for you. See the README for status bars and shortcuts.</p><ul class="downloads" aria-label="Download SabreBat v0.1.0">
+<li><a class="button secondary" href="https://github.com/Evilchuck666/SabreBat/releases/download/v0.1.0/sabrebat-0.1.0-py3-none-any.whl"><span class="download-label"><svg class="os-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 9C6 11 5 14 5 17c0 3 3 4 7 4s7-1 7-4c0-3-1-6-3-8V6a4 4 0 0 0-8 0z" fill="currentColor"/><ellipse cx="12" cy="15" rx="4" ry="5" fill="var(--bg)"/><ellipse cx="10.5" cy="6.5" rx="1" ry="1.5" fill="var(--bg)"/><ellipse cx="13.5" cy="6.5" rx="1" ry="1.5" fill="var(--bg)"/><path d="m9 9 3-2 3 2-3 2zM3 20l4-2 3 4H3zm18 0-4-2-3 4h7z" fill="currentColor"/></svg><span>Linux<small>v0.1.0 · Python wheel (.whl)</small></span></span><span aria-hidden="true">↓</span></a></li>
+<li><a class="button secondary" href="https://github.com/Evilchuck666/SabreBat/releases/download/v0.1.0/sabrebat-0.1.0.tar.gz"><span>Source code<small>v0.1.0 · .tar.gz</small></span><span aria-hidden="true">↓</span></a></li>
+</ul>
+<p><a href="https://github.com/Evilchuck666/SabreBat/releases/download/v0.1.0/SHA256SUMS.txt">SHA-256 checksums ↓</a> · <a href="https://github.com/Evilchuck666/SabreBat/releases/latest">Latest release &amp; all downloads ↗</a></p>
+<p><a href="https://github.com/Evilchuck666/SabreBat#readme">Installation &amp; usage ↗</a></p></div><div class="install">
+<div><h3>Arch Linux &amp; derivatives</h3><p>SabreBat is in the <a href="https://aur.archlinux.org/packages/sabrebat">AUR ↗</a>, with its udev rule, desktop entry and icon.</p><pre><code>yay -S sabrebat
+# or: paru -S sabrebat</code></pre></div>
+<div><h3>Other distributions</h3><p>Install the <a href="https://github.com/Evilchuck666/SabreBat/blob/main/data/70-sabrebat.rules">udev rule ↗</a> as <code>/etc/udev/rules.d/70-sabrebat.rules</code> and replug the receiver, then:</p><pre><code>pip install SabreBat
+sabre-bat
+sabre-bat --notify</code></pre></div>
+<aside class="resources" aria-label="Project resources"><h3>From the workshop</h3><ul>
+<li><a href="https://github.com/Evilchuck666/SabreBat#readme">Read the documentation ↗</a></li>
+<li><a href="https://github.com/Evilchuck666/SabreBat/issues">Report an issue ↗</a></li>
+<li><a href="https://github.com/Evilchuck666/SabreBat">Explore the source ↗</a></li></ul></aside></div></section>
+
+</main>
+<footer><p>A project by <a href="https://evilchuck666.github.io/">Carlos Martínez</a>. Not affiliated with Corsair.</p><p><a href="https://github.com/Evilchuck666/SabreBat/blob/main/LICENSE">GPLv3</a> · <a href="https://github.com/Evilchuck666/SabreBat">Source &amp; documentation</a></p></footer>
+</div>
+</body>
+</html>

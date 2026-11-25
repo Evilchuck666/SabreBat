@@ -1,0 +1,65 @@
+{
+  // Tasks run in the workspace folder. The Python ones use the interpreter selected in VS Code with PYTHONPATH
+  // pointing at src/, so they run this checkout, never the copy installed by the AUR package.
+  "version": "2.0.0",
+  "tasks": [
+    {
+      // Creates or updates .venv (sabrebat itself in editable mode) for the editor and the Test Explorer.
+      "label": "SabreBat: sync venv",
+      "type": "process",
+      "command": "uv",
+      "args": ["sync"],
+      "problemMatcher": []
+    },
+    {
+      // Same as `make test`.
+      "label": "SabreBat: tests",
+      "type": "process",
+      "command": "${command:python.interpreterPath}",
+      "args": ["-m", "unittest", "discover", "-s", "tests", "-v"],
+      "options": {
+        "env": {
+          "PYTHONPATH": "${workspaceFolder}/src"
+        }
+      },
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      // Same checks as the CI smoke test: --help, --version and module imports (no receiver needed).
+      "label": "SabreBat: smoke test",
+      "type": "shell",
+      "command": "py='${command:python.interpreterPath}' && \"$py\" -m sabrebat --help > /dev/null && \"$py\" -m sabrebat --version && \"$py\" -c 'import sabrebat.cli, sabrebat.device, sabrebat.notify' && echo 'Smoke test OK'",
+      "options": {
+        "env": {
+          "PYTHONPATH": "${workspaceFolder}/src"
+        }
+      },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      // `make build`: the wheel goes to PKGs/.
+      "label": "SabreBat: build wheel",
+      "type": "process",
+      "command": "make",
+      "args": ["build"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      // Arch only: builds arch/PKGBUILD (from the pushed main branch) and installs it. makepkg asks for the sudo password.
+      "label": "SabreBat: install pacman package (Arch)",
+      "type": "process",
+      "command": "make",
+      "args": ["arch"],
+      "problemMatcher": []
+    }
+  ]
+}

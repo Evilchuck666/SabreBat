@@ -1,0 +1,4 @@
+# SabreBat: let the user of the active seat read the Corsair Sabre v2 Pro
+# receiver (USB 1b1c:2b2a) through hidraw, without sudo.
+# Numbered below 73 so that elogind/systemd-logind apply the uaccess tag.
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1b1c", ATTRS{idProduct}=="2b2a", TAG+="uaccess"
