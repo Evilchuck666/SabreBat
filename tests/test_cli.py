@@ -19,7 +19,12 @@ def run(*argv):
 class CliTests(unittest.TestCase):
     def test_default_line(self):
         with mock.patch.object(cli, "read_battery", return_value=BATTERY):
-            self.assertEqual(run(), (0, "Sabre v2 Pro: 95%  (4184 mV, flag=1)\n", ""))
+            self.assertEqual(run(), (0, "Sabre v2 Pro: 95%  (4184 mV, charging)\n", ""))
+
+    def test_default_line_on_battery(self):
+        on_battery = Battery(percent=40, millivolts=3850, flag=0)
+        with mock.patch.object(cli, "read_battery", return_value=on_battery):
+            self.assertEqual(run(), (0, "Sabre v2 Pro: 40%  (3850 mV, on battery)\n", ""))
 
     def test_quiet(self):
         with mock.patch.object(cli, "read_battery", return_value=BATTERY):
@@ -52,6 +57,33 @@ class CliTests(unittest.TestCase):
     def test_quiet_and_notify_exclusive(self):
         with self.assertRaises(SystemExit):
             run("-q", "-n")
+
+    def test_daemon_defaults(self):
+        with mock.patch("sabrebat.daemon.run") as daemon_run:
+            self.assertEqual(run("--daemon"), (0, "", ""))
+        daemon_run.assert_called_once_with(None, 20, 90, 60, 10)
+
+    def test_daemon_options(self):
+        with mock.patch("sabrebat.daemon.run") as daemon_run:
+            run("-D", "-d", "/dev/hidraw9", "--low", "15", "--high", "80",
+                "--interval", "30", "--remind", "0")
+        daemon_run.assert_called_once_with("/dev/hidraw9", 15, 80, 30, 0)
+
+    def test_daemon_stops_quietly_on_ctrl_c(self):
+        with mock.patch("sabrebat.daemon.run", side_effect=KeyboardInterrupt):
+            self.assertEqual(run("-D"), (0, "", ""))
+
+    def test_daemon_rejects_bad_options(self):
+        for argv in (["--low", "95", "--high", "90"], ["--low", "-1"], ["--high", "101"],
+                     ["--interval", "0"], ["--remind", "-5"]):
+            with self.subTest(argv=argv), mock.patch("sabrebat.daemon.run") as daemon_run, \
+                    self.assertRaises(SystemExit):
+                run("-D", *argv)
+            daemon_run.assert_not_called()
+
+    def test_daemon_and_quiet_exclusive(self):
+        with self.assertRaises(SystemExit):
+            run("-q", "-D")
 
     def test_version(self):
         code, out, _err = run("--version")

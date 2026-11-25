@@ -32,6 +32,12 @@ LEVELS = (
     (0, NORD["red"], "Critical battery, charge it!", "critical"),
 )
 
+# Daemon alerts: kind -> (label, hint, urgency).
+ALERTS = {
+    "low": ("Low battery", "Connect the cable to charge the mouse.", "critical"),
+    "high": ("Almost charged", "You can unplug the cable.", "normal"),
+}
+
 TIMEOUT_MS = 6000
 CRITICAL_TIMEOUT_MS = 10000
 
@@ -110,18 +116,34 @@ def _send(cmd: list[str]) -> bool:
         return False
 
 
-def battery_body(battery: Battery) -> str:
-    colour, label, _ = level(battery.percent)
+def battery_body(battery: Battery, label: str | None = None, hint: str | None = None) -> str:
+    """Notification text: the level, a label (by default the level's), an optional hint
+    line and the voltage."""
+    colour, level_label, _ = level(battery.percent)
+    if label is None:
+        label = f"{level_label} · charging" if battery.charging else level_label
+    hint_line = f"<span foreground='{NORD['fg']}'>{hint}</span>\n" if hint else ""
     return (f"<span size='xx-large' weight='bold' foreground='{colour}'>{battery.percent}%</span>"
             f"  <span foreground='{NORD['dim']}'>{label}</span>\n"
+            f"{hint_line}"
             f"<span size='small' foreground='{NORD['dim']}' fgalpha='65%'>{battery.volts:.2f} V</span>")
 
 
-def notify_battery(battery: Battery) -> bool:
-    colour, _, urgency = level(battery.percent)
+def _notify_level(battery: Battery, body: str, urgency: str) -> bool:
+    colour = level(battery.percent)[0]
     timeout = CRITICAL_TIMEOUT_MS if urgency == "critical" else TIMEOUT_MS
-    return _send(notify_command(TITLE, battery_body(battery), make_icon(battery.percent, colour),
+    return _send(notify_command(TITLE, body, make_icon(battery.percent, colour),
                                 urgency=urgency, value=battery.percent, colour=colour, timeout=timeout))
+
+
+def notify_battery(battery: Battery) -> bool:
+    return _notify_level(battery, battery_body(battery), level(battery.percent)[2])
+
+
+def notify_alert(battery: Battery, kind: str) -> bool:
+    """Suggest plugging the cable in (``"low"``) or unplugging it (``"high"``)."""
+    label, hint, urgency = ALERTS[kind]
+    return _notify_level(battery, battery_body(battery, label, hint), urgency)
 
 
 def notify_error(message: str) -> bool:

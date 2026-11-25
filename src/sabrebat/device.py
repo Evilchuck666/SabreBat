@@ -7,7 +7,7 @@ layout and echo the command. Command 0x04 returns the battery state:
 
     byte 2      status (0 = OK, 1 = rejected, e.g. bad checksum)
     byte 6      battery level, percent
-    byte 7      flag (meaning not confirmed yet; possibly charging)
+    byte 7      flag: 1 while the charging cable is plugged in, 0 on battery
     bytes 8-9   battery voltage in millivolts, big endian
 
 Only command 0x04 is ever sent: other commands of this protocol write settings
@@ -49,6 +49,16 @@ class Battery:
     @property
     def volts(self) -> float:
         return self.millivolts / 1000
+
+    @property
+    def charging(self) -> bool:
+        """True while the charging cable is plugged in (byte 7 of the answer is 1)."""
+        return self.flag == 1
+
+    @property
+    def status(self) -> str:
+        """Readable charging state: "charging", "on battery" or the raw flag if it has another value."""
+        return {0: "on battery", 1: "charging"}.get(self.flag, f"flag={self.flag}")
 
 
 def checksum(data: bytes | list[int]) -> int:

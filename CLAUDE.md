@@ -4,13 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-SabreBat reads the battery level of the Corsair Sabre v2 Pro wireless mouse from its USB receiver (`1b1c:2b2a`) over hidraw, because neither the kernel nor UPower expose it. The `sabre-bat` CLI prints it, prints just the percentage (`-q`) or shows a dunst-styled notification (`-n`). It started as a single script in `~/.local/bin/sabre-bat`.
+SabreBat reads the battery level of the Corsair Sabre v2 Pro wireless mouse from its USB receiver (`1b1c:2b2a`) over hidraw, because neither the kernel nor UPower expose it. The `sabre-bat` CLI prints it, prints just the percentage (`-q`), shows a dunst-styled notification (`-n`) or keeps running as a daemon (`-D`) that suggests plugging the cable in at 20 % on battery and unplugging it at 90 % while charging. It started as a single script in `~/.local/bin/sabre-bat`.
 
 ## Commands
 
 ```bash
 # Run from the checkout (needs the receiver and the udev rule)
-PYTHONPATH=src python -m sabrebat [-q | -n] [-d /dev/hidrawN]
+PYTHONPATH=src python -m sabrebat [-q | -n | -D] [-d /dev/hidrawN]
+
+# Daemon with short timings, to see the alerts quickly
+PYTHONPATH=src python -m sabrebat -D --interval 5 --remind 1
 
 # Unit tests (stdlib unittest, no receiver or desktop needed)
 make test        # PYTHONPATH=src python -m unittest discover -s tests -v
@@ -32,15 +35,16 @@ All code lives in `src/sabrebat/`. `__init__.py` re-exports `cli.main` and reads
 
 | Module      | Role |
 |-------------|------|
-| `device.py` | The receiver protocol. `find_device()` scans `/sys/class/hidraw/*/device/uevent` for `HID_ID` 1B1C:2B2A with `HID_PHYS` ending in `input1` (takes a `sysfs_root` for tests). `build_packet()` makes the 17-byte report (ID `0x08`, command, checksum `(0x55 - sum) & 0xFF`); `_query()` drains stale reports, writes and waits up to `READ_TIMEOUT` for the answer that echoes the command; `parse_battery()` turns it into `Battery(percent, millivolts, flag)`; `read_battery()` raises `DeviceError` with a user-facing message (not found, no permission, no answer). |
-| `notify.py` | `level()` maps a percentage to Nord colour, label and urgency (`LEVELS`); `icon_svg()`/`make_icon()` draw a mouse filled to the level, cached per level in `$XDG_CACHE_HOME/sabrebat/`; `notify_command()` builds the `notify-send` argv (dunst stack tag, `int:value` progress bar, `hlcolor`/`frcolor`); `notify_battery()` and `notify_error()` send it. |
-| `cli.py`    | argparse; `-q` and `-n` are mutually exclusive. Imports `notify` only when notifying. Exit 1 on `DeviceError` (also shown as a notification with `-n`) or when `notify-send` fails. |
+| `device.py` | The receiver protocol. `find_device()` scans `/sys/class/hidraw/*/device/uevent` for `HID_ID` 1B1C:2B2A with `HID_PHYS` ending in `input1` (takes a `sysfs_root` for tests). `build_packet()` makes the 17-byte report (ID `0x08`, command, checksum `(0x55 - sum) & 0xFF`); `_query()` drains stale reports, writes and waits up to `READ_TIMEOUT` for the answer that echoes the command; `parse_battery()` turns it into `Battery(percent, millivolts, flag)` (`charging` is `flag == 1`, `status` is "charging"/"on battery"); `read_battery()` raises `DeviceError` with a user-facing message (not found, no permission, no answer). |
+| `notify.py` | `level()` maps a percentage to Nord colour, label and urgency (`LEVELS`); `icon_svg()`/`make_icon()` draw a mouse filled to the level, cached per level in `$XDG_CACHE_HOME/sabrebat/`; `notify_command()` builds the `notify-send` argv (dunst stack tag, `int:value` progress bar, `hlcolor`/`frcolor`); `notify_battery()`, `notify_alert()` (daemon alerts from `ALERTS`: label, hint, urgency) and `notify_error()` send it. |
+| `daemon.py` | `--daemon`. `alert_for()` applies the rule (low only on battery, high only while charging); `Watcher` decides when an alert is due (first of an episode, then every `remind` seconds; plugging/unplugging the cable resets the episode); `run()` loops reading, alerting and logging changes to stderr. Read errors are logged, never notified. |
+| `cli.py`    | argparse; `-q`, `-n` and `-D` are mutually exclusive; `--low`, `--high`, `--interval`, `--remind` are validated only with `-D` (defaults in `daemon.py`). Imports `notify` only when notifying. Exit 1 on `DeviceError` (also shown as a notification with `-n`) or when `notify-send` fails; the daemon exits 0 on Ctrl+C. |
 
 Packaging data lives in `data/`: the udev rule, `sabre-bat.desktop` (`Exec=sabre-bat --notify`, `Icon=sabrebat`) and `sabrebat.svg`. Only `arch/PKGBUILD` installs them; the wheel ships just the Python package.
 
 **Gotchas:**
 - **Only send command `0x04`.** In this protocol family other commands write the settings memory (`0x07`) or factory-reset the mouse (`0x09`); packets with a wrong checksum are rejected with status `0x01`, which is how the format was worked out. See TECHNICAL_GUIDE.md.
-- Byte 7 of the battery answer (`flag`) is shown raw: it has been seen as 0 and 1 but its meaning (charging?) is unconfirmed. Don't label it until it is checked with the cable plugged in and out.
+- Byte 7 of the battery answer (`flag`) is 1 with the charging cable plugged in and 0 on battery: checked on 2026-11-25 at 95 % (4088 mV flag 0 → 4214 mV flag 1). The receiver keeps answering while charging. Whether it stays 1 at 100 % with the cable in is unknown.
 - A sleeping mouse doesn't answer: that is a normal error, not a bug.
 - The udev rule must sort before `73-seat-late.rules` for `uaccess` to apply.
 

@@ -70,6 +70,39 @@ class CommandTests(unittest.TestCase):
         self.assertIn("8%", cmd[-1])
         self.assertIn("3.60 V", cmd[-1])
 
+    def test_battery_notification_while_charging(self):
+        with mock.patch.object(notify, "make_icon", return_value="/tmp/icon.svg"), \
+                mock.patch.object(notify.subprocess, "run") as run:
+            run.return_value.returncode = 0
+            notify.notify_battery(Battery(percent=95, millivolts=4214, flag=1))
+        self.assertIn("High battery · charging", run.call_args.args[0][-1])
+
+    def alert_command(self, battery, kind):
+        with mock.patch.object(notify, "make_icon", return_value="/tmp/icon.svg"), \
+                mock.patch.object(notify.subprocess, "run") as run:
+            run.return_value.returncode = 0
+            self.assertTrue(notify.notify_alert(battery, kind))
+        return run.call_args.args[0]
+
+    def test_low_alert(self):
+        cmd = self.alert_command(Battery(percent=20, millivolts=3700, flag=0), "low")
+        self.assertEqual(cmd[cmd.index("-u") + 1], "critical")
+        self.assertEqual(cmd[cmd.index("-t") + 1], str(notify.CRITICAL_TIMEOUT_MS))
+        self.assertIn("int:value:20", cmd)
+        self.assertIn("string:x-dunst-stack-tag:sabrebat", cmd)
+        self.assertIn(f"string:hlcolor:{notify.NORD['orange']}", cmd)
+        self.assertIn("Low battery", cmd[-1])
+        self.assertIn("Connect the cable", cmd[-1])
+        self.assertIn("3.70 V", cmd[-1])
+
+    def test_high_alert(self):
+        cmd = self.alert_command(Battery(percent=90, millivolts=4200, flag=1), "high")
+        self.assertEqual(cmd[cmd.index("-u") + 1], "normal")
+        self.assertEqual(cmd[cmd.index("-t") + 1], str(notify.TIMEOUT_MS))
+        self.assertIn(f"string:hlcolor:{notify.NORD['green']}", cmd)
+        self.assertIn("Almost charged", cmd[-1])
+        self.assertIn("unplug the cable", cmd[-1])
+
     def test_missing_notify_send(self):
         with mock.patch.object(notify, "make_icon", return_value="x"), \
                 mock.patch.object(notify.subprocess, "run", side_effect=FileNotFoundError):

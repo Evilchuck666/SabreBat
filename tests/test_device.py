@@ -35,6 +35,14 @@ class ParseTests(unittest.TestCase):
         self.assertEqual(battery, Battery(percent=95, millivolts=0x1054, flag=1))
         self.assertAlmostEqual(battery.volts, 4.18)
 
+    def test_charging_flag(self):
+        # Checked on the mouse: 0 on battery, 1 with the charging cable plugged in.
+        self.assertTrue(Battery(percent=95, millivolts=4214, flag=1).charging)
+        self.assertFalse(Battery(percent=95, millivolts=4088, flag=0).charging)
+        self.assertEqual(Battery(percent=95, millivolts=4214, flag=1).status, "charging")
+        self.assertEqual(Battery(percent=95, millivolts=4088, flag=0).status, "on battery")
+        self.assertEqual(Battery(percent=95, millivolts=4088, flag=2).status, "flag=2")
+
     def test_rejected_answer(self):
         with self.assertRaises(DeviceError):
             device.parse_battery(bytes.fromhex("08 04 01") + bytes(14))

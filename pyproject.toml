@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "SabreBat"
-version = "0.1.0"
+version = "0.2.0"
 description = "Battery level of the Corsair Sabre v2 Pro wireless mouse on Linux: in the terminal, in a status bar or in a desktop notification"
 readme = "README.md"
 requires-python = ">=3.10"

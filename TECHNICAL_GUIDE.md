@@ -33,10 +33,21 @@ Request: `08 04 00 … 00 49`. Answer, for example:
 ```
 08 04 00 00 00 02 5f 01 10 54 00 00 00 00 00 00 83
                │  │  │  └──┴─ voltage, big endian: 0x1054 = 4180 mV
-               │  │  └─ flag: 0 or 1, meaning not confirmed yet (possibly charging)
+               │  │  └─ flag: 1 with the charging cable plugged in, 0 on battery
                │  └─ level: 0x5f = 95 %
                └─ data length
 ```
+
+The flag was checked on the mouse by reading it with the cable in and out, at the same level:
+
+| Cable | Level | Voltage | Flag |
+|:------|:------|:--------|:-----|
+| Unplugged | 95 % | 4088 mV | 0 |
+| Plugged in | 95 % | 4214 mV | 1 |
+
+The receiver keeps answering while the cable is plugged in, and the mouse doesn't show up as a
+USB device of its own. Whether the flag stays at 1 once the battery is full is not known yet.
+`Battery.charging` is `flag == 1`, and `sabre-bat` prints it as `charging` or `on battery`.
 
 When the mouse is asleep or off, the receiver doesn't answer, and SabreBat reports that after
 waiting one second (`device.READ_TIMEOUT`).
@@ -84,6 +95,34 @@ The icon is an SVG written once per level to `$XDG_CACHE_HOME/sabrebat/` (defaul
 `~/.cache/sabrebat/`). Other notification daemons ignore the dunst hints and show the text and
 icon.
 
+The daemon's alerts use the same hints and stack tag, so a reminder replaces the notification
+before it. The low-battery alert has `critical` urgency and the charged alert `normal`.
+
+## Daemon
+
+`sabre-bat --daemon` reads the battery every `--interval` seconds (default 60) and decides from
+the level and the charging flag:
+
+| Alert | Shown when | Suggests |
+|:------|:-----------|:---------|
+| Low battery | level ≤ `--low` (default 20 %) **and** on battery | plugging the cable in |
+| Almost charged | level ≥ `--high` (default 90 %) **and** charging | unplugging the cable |
+
+So 20 % while charging and 90 % on battery stay quiet. While its condition holds, an alert is
+repeated every `--remind` minutes (default 10; `0` shows it once). Plugging the cable in ends a
+low-battery episode and unplugging it ends a charged one, so unplugging again below the
+threshold alerts at once. A level that wobbles around a threshold, with the cable left as it
+was, only gets the reminders. The decision lives in `daemon.Watcher`, which the tests drive with
+a fake clock.
+
+Read errors are not notified: the receiver may be unplugged or the mouse asleep, and the next
+reading tries again. Without `--device`, the receiver is detected anew at each reading, so the
+daemon survives replugging it.
+
+The daemon logs to stderr, with a timestamp, when it starts, when the level, the charging state
+or the error changes, and when it shows an alert. It stops on Ctrl+C (exit status 0) or on
+`SIGTERM`.
+
 ## Installing from source
 
 ### Building and installing the wheel
@@ -120,4 +159,5 @@ make test           # PYTHONPATH=src python -m unittest discover -s tests -v
 
 ```bash
 PYTHONPATH=src python -m sabrebat --notify
+PYTHONPATH=src python -m sabrebat --daemon --interval 5 --remind 1
 ```

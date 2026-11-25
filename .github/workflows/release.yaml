@@ -167,7 +167,7 @@ jobs:
             "venv-$py/bin/pip" install dist/*.whl
             "venv-$py/bin/sabre-bat" --help > /dev/null
             "venv-$py/bin/sabre-bat" --version
-            "venv-$py/bin/python" -c "import sabrebat.cli, sabrebat.device, sabrebat.notify"
+            "venv-$py/bin/python" -c "import sabrebat.cli, sabrebat.daemon, sabrebat.device, sabrebat.notify"
             echo "::endgroup::"
           done
 
